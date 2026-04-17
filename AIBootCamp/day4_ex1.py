@@ -39,13 +39,29 @@ print("\n Classification report: ", classification_report(y_test, y_pred))
 
 x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
 y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
+# np.arange(start, stop, step) returns a 1D array of evenly spaced values from start up to (but not including) stop, with the given step.
+# It's like Python's range() but:
+# works with floats (not just integers)
+# returns a numpy array instead of a range object
 xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.1), np.arange(y_min, y_max, 0.1))
 
 # predict probabilities for each point in the grid
+# np.c_ is not a function — it's a indexing object that concatenates arrays column-wise (horizontally).
+# xx.ravel() → flattens xx into a 1D array, e.g. shape (12100,)
+# yy.ravel() → flattens yy into a 1D array, e.g. shape (12100,)
+# np.c_[...] → stacks them side by side into a 2D array of shape (12100, 2)
+# This is needed because model.predict() expects a 2D array where each row is one sample with all its features — exactly the same shape as X_train and X_test.
 Z = model.predict(np.c_[xx.ravel(), yy.ravel()])
 Z = Z.reshape(xx.shape)
 
+# coolwarm: blue for class 0 (no purchase), red for class 1 (purchase)
+# The result is the coloured background of the plot — it shows which region of the Age/Salary space the model classifies as "bought" vs "didn't buy".
 plt.contourf(xx, yy, Z, alpha=0.8, cmap='coolwarm')
+# X_test['Age'] → x-coordinates of the 40 test points
+# X_test['Salary'] → y-coordinates of the 40 test points
+# c=y_test → colour each dot by its actual label (0 or 1), using coolwarm (blue/red)
+# edgecolors='k' → black border around each dot so they stand out from the background
+# If a dot's colour matches the background behind it → correct prediction. If it doesn't → misclassification.
 plt.scatter(X_test['Age'], X_test['Salary'], c=y_test, edgecolors='k', cmap='coolwarm')
 plt.title("Logistic regression decision boundary")
 plt.xlabel("Age")
