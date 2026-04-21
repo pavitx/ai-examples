@@ -22,28 +22,42 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score, classification_report
+from sklearn.linear_model import LogisticRegression
 
 data = load_iris()
 X, y = data.data, data.target
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
+
+
 scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
 
-# experiment with different values of k
+# train logistic regression
+log_reg = LogisticRegression(max_iter=200)
+log_reg.fit(X_train, y_train)
 
-# accuracy is 100% for k = 1 through 10, which is quite fortunate for the 30 test samples
-# Iris has 150 samples, with test_size=0.2 there are 30 test samples
-# other values of random_state or a bigger test size might not give 100%
-for k in range(1, 11):
-    knn = KNeighborsClassifier(n_neighbors=k)
-    # fit() for KNN does NO computation - it simply stores the training data in memory.
-    # All the actual work (distance calculation + voting) happens later in predict().
-    knn.fit(X_train, y_train)
+# predict/evaluate with logistic regression
+y_pred_lr = log_reg.predict(X_test)
 
-    y_pred = knn.predict(X_test)
+accuracy_lr = accuracy_score(y_test, y_pred_lr)
+print("Logistic regression accuracy: ", accuracy_lr)
 
-    accuracy = accuracy_score(y_test, y_pred)
-    print(f"k = {k}, accuracy: {accuracy:.2f}")
+
+# evaluate k-NN
+best_k = 5
+knn = KNeighborsClassifier(n_neighbors=best_k)
+knn.fit(X_train, y_train)
+
+y_pred_knn = knn.predict(X_test)
+
+accuracy_knn = accuracy_score(y_test, y_pred_knn)
+print(f"k-NN accuracy k={best_k}: {accuracy_knn:.2f}")
+
+print("\n Logistic regression classification report: ")
+print(classification_report(y_test, y_pred_lr))
+
+print("\n k-NN classification report: ")
+print(classification_report(y_test, y_pred_knn))
